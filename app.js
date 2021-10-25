@@ -1,31 +1,35 @@
-document.querySelector('.get-jokes').addEventListener('click', getJokes);
+document.getElementById('get-jokes').addEventListener('click', getJokes);
+let timer = new Date();
 
 function getJokes(e) {
-  const number = document.querySelector('input[type="number"]').value;
+    e.target.innerText = 'Generating..';
 
-  const xhr = new XMLHttpRequest();
+    const time = performance.now(),
+        jokes = document.getElementById('jokes'),
+        number = document.getElementById('number').value,
+        stat = document.getElementById('stat');
 
-  xhr.open('GET', `http://api.icndb.com/jokes/random/${number}`, true);
+    stat.value = '';
+    document.getElementById('number').value = '';
 
-  xhr.onload = function() {
-    if(this.status === 200) {
-      const response = JSON.parse(this.responseText);
-      
-      let output = '';
-
-      if(response.type === 'success') {
-        response.value.forEach(function(joke){
-          output += `<li>${joke.joke}</li>`;
+    if(isNaN(parseInt(number))) {
+        stat.innerText = 'Chuck Norris: Enter a number!';
+        e.target.innerText = 'Get Jokes!';
+    } else {
+        fetch(`https://api.icndb.com/jokes/random/${number}`).then(res => res.json()).then(data => {
+            const fetchedTime = performance.now();
+            let result = '';
+            data.value.forEach(joke => {
+                result += `<li>${joke.joke}</li>`;
+            });
+            stat.innerText = `Generated ${number} jokes in ${Math.round(fetchedTime - time)} ms.`;
+            jokes.innerHTML = result;
+            e.target.innerText = 'Get Jokes!';
+        }).catch(err => {
+            stat.innerText = 'Chuck Norris: Something went wrong, try again!';
+            e.target.innerText = 'Get Jokes!';
         });
-      } else {
-        output += '<li>Something went wrong</li>';
-      }
-
-      document.querySelector('.jokes').innerHTML = output;
     }
-  }
 
-  xhr.send();
-
-  e.preventDefault();
+    e.preventDefault();
 }
